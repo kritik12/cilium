@@ -621,6 +621,7 @@ message PeerConf {
   bool replace_peer_asn = 14;
   bool admin_down = 15;
   bool send_software_version = 16;
+  repeated string capabilities = 17;
 }
 
 message PeerGroupConf {

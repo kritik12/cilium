@@ -3874,6 +3874,11 @@ definitions:
       peer-address:
         description: IP Address of peer
         type: string
+      capabilities:
+        type: array 
+        items:
+          type: string
+        description: Negotiated BGP capabilities between peers
       tcp-password-enabled:
         description: Set when a TCP password is configured for communications with this peer
         type: boolean

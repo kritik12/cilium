@@ -54,11 +54,13 @@ func printSummary(peers []*models.BgpPeer) {
 		return peers[i].LocalAsn < peers[j].LocalAsn || peers[i].PeerAddress < peers[j].PeerAddress
 	})
 
-	fmt.Fprintln(w, "Local AS\tPeer AS\tPeer Address\tSession\tUptime\tFamily\tReceived\tAdvertised")
+	fmt.Fprintln(w, "Local AS\tPeer AS\tPeer Address\tcapabilities\tSession\tUptime\tFamily\tReceived\tAdvertised")
 	for _, peer := range peers {
 		fmt.Fprintf(w, "%d\t", peer.LocalAsn)
 		fmt.Fprintf(w, "%d\t", peer.PeerAsn)
 		fmt.Fprintf(w, "%s:%d\t", peer.PeerAddress, peer.PeerPort)
+		fmt.Fprintf(w, "%s\t", strings.Join(peer.Capabilities, ", "))
+
 		fmt.Fprintf(w, "%s\t", peer.SessionState)
 
 		// Time is rounded to nearest second

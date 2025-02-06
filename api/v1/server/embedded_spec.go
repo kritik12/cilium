@@ -2033,6 +2033,13 @@ func init() {
           "description": "Applied initial value for the BGP KeepaliveTimer (RFC 4271, Section 8) in seconds.\nThe applied value holds the value that is in effect on the current BGP session.\n",
           "type": "integer"
         },
+        "capabilities": {
+          "description": "Negotiated BGP capabilities between peers",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
         "configured-hold-time-seconds": {
           "description": "Configured initial value for the BGP HoldTimer (RFC 4271, Section 4.2) in seconds.\nThe configured value will be used for negotiation with the peer during the BGP session establishment.\n",
           "type": "integer"
@@ -7731,6 +7738,13 @@ func init() {
         "applied-keep-alive-time-seconds": {
           "description": "Applied initial value for the BGP KeepaliveTimer (RFC 4271, Section 8) in seconds.\nThe applied value holds the value that is in effect on the current BGP session.\n",
           "type": "integer"
+        },
+        "capabilities": {
+          "description": "Negotiated BGP capabilities between peers",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
         },
         "configured-hold-time-seconds": {
           "description": "Configured initial value for the BGP HoldTimer (RFC 4271, Section 4.2) in seconds.\nThe configured value will be used for negotiation with the peer during the BGP session establishment.\n",

@@ -2224,6 +2224,24 @@ func (c *Collector) getBGPControlPlaneTasks() []Task {
 				return nil
 			},
 		},
+		{
+			Description: "Collecting BGP peer information",
+			Quick:       true,
+			Task: func(ctx context.Context) error {
+				out, err := c.Client.ExecInPod(ctx, c.Options.CiliumNamespace, c.CiliumPods[0].Name, ciliumAgentContainerName, []string{
+					"cilium-dbg", "bgp", "peers",
+				})
+				if err != nil {
+					if strings.Contains(out.String(), "BGP Control Plane disabled") {
+						c.logDebug("BGP Control Plane not enabled")
+						return nil
+					}
+					return fmt.Errorf("failed to get BGP peers: %w", err)
+				}
+				return c.WriteString("bgp-peers-<ts>.txt", out.String())
+			},
+		},
+
 	}
 }
 

@@ -62,7 +62,10 @@ func (g *GoBGPServer) GetPeerState(ctx context.Context) (types.GetPeerStateRespo
 			peerState.PeerAsn = int64(peer.Conf.PeerAsn)
 			peerState.TCPPasswordEnabled = peer.Conf.AuthPassword != ""
 		}
-
+		if peer.Conf != nil && len(peer.Conf.Capabilities) > 0 {
+			peerState.Capabilities = make([]string, len(peer.Conf.Capabilities))
+			copy(peerState.Capabilities, peer.Conf.Capabilities)
+		}
 		if peer.State != nil {
 			if peer.Conf.PeerAsn == 0 { // if peerAsn is not set, use peer state peerAsn
 				peerState.PeerAsn = int64(peer.State.PeerAsn)

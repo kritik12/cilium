@@ -35,6 +35,9 @@ type BgpPeer struct {
 	//
 	AppliedKeepAliveTimeSeconds int64 `json:"applied-keep-alive-time-seconds,omitempty"`
 
+	// Negotiated BGP capabilities between peers
+	Capabilities []string `json:"capabilities"`
+
 	// Configured initial value for the BGP HoldTimer (RFC 4271, Section 4.2) in seconds.
 	// The configured value will be used for negotiation with the peer during the BGP session establishment.
 	//
