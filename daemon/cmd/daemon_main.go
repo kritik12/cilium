@@ -250,9 +250,8 @@ func InitGlobalFlags(cmd *cobra.Command, vp *viper.Viper) {
 	flags.MarkDeprecated(option.EnableRuntimeDeviceDetection, "Runtime device detection and datapath reconfiguration is now the default and only mode of operation")
 
 	flags.String(option.DatapathMode, defaults.DatapathMode,
-		fmt.Sprintf("Datapath mode name (%s, %s, %s, %s)",
-			datapathOption.DatapathModeVeth, datapathOption.DatapathModeNetkit,
-			datapathOption.DatapathModeNetkitL2, datapathOption.DatapathModeLBOnly))
+		fmt.Sprintf("Datapath mode name (%s, %s, %s)",
+			datapathOption.DatapathModeVeth, datapathOption.DatapathModeNetkit, datapathOption.DatapathModeNetkitL2))
 	option.BindEnv(vp, option.DatapathMode)
 
 	flags.Bool(option.EnableEndpointRoutes, defaults.EnableEndpointRoutes, "Use per endpoint routes instead of routing via cilium_host")
@@ -388,9 +387,6 @@ func InitGlobalFlags(cmd *cobra.Command, vp *viper.Viper) {
 	flags.Bool(option.EnableUnreachableRoutes, false, "Add unreachable routes on pod deletion")
 	option.BindEnv(vp, option.EnableUnreachableRoutes)
 
-	flags.Bool(option.EnableWellKnownIdentities, defaults.EnableWellKnownIdentities, "Enable well-known identities for known Kubernetes components")
-	option.BindEnv(vp, option.EnableWellKnownIdentities)
-
 	flags.Bool(option.EnableIPSecName, defaults.EnableIPSec, "Enable IPsec support")
 	option.BindEnv(vp, option.EnableIPSecName)
 
@@ -489,17 +485,6 @@ func InitGlobalFlags(cmd *cobra.Command, vp *viper.Viper) {
 	flags.Uint(option.K8sServiceCacheSize, defaults.K8sServiceCacheSize, "Cilium service cache size for kubernetes")
 	option.BindEnv(vp, option.K8sServiceCacheSize)
 	flags.MarkHidden(option.K8sServiceCacheSize)
-
-	flags.Int(option.K8sServiceDebounceBufferSize, 128, "Number of distinct services to buffer for event debouncing")
-	option.BindEnv(vp, option.K8sServiceDebounceBufferSize)
-	flags.MarkHidden(option.K8sServiceDebounceBufferSize)
-
-	flags.Duration(option.K8sServiceDebounceWaitTime, 200*time.Millisecond, "The amount of time to wait to debounce service events")
-	option.BindEnv(vp, option.K8sServiceDebounceWaitTime)
-	flags.MarkHidden(option.K8sServiceDebounceWaitTime)
-
-	flags.String(option.K8sWatcherEndpointSelector, defaults.K8sWatcherEndpointSelector, "K8s endpoint watcher will watch for these k8s endpoints")
-	option.BindEnv(vp, option.K8sWatcherEndpointSelector)
 
 	flags.Bool(option.KeepConfig, false, "When restoring state, keeps containers' configuration in place")
 	option.BindEnv(vp, option.KeepConfig)
@@ -618,6 +603,10 @@ func InitGlobalFlags(cmd *cobra.Command, vp *viper.Viper) {
 
 	flags.Bool(option.LoadBalancerProtocolDifferentiation, true, "Enable support for service protocol differentiation (TCP, UDP, SCTP)")
 	option.BindEnv(vp, option.LoadBalancerProtocolDifferentiation)
+
+	flags.Bool(option.LoadBalancerOnly, false, "Enable support for legacy lb-only mode")
+	option.BindEnv(vp, option.LoadBalancerOnly)
+	flags.MarkDeprecated(option.LoadBalancerOnly, "Future releases might require to pick individual KPR flags instead")
 
 	flags.Bool(option.EnableAutoProtectNodePortRange, true,
 		"Append NodePort range to net.ipv4.ip_local_reserved_ports if it overlaps "+
@@ -1050,6 +1039,10 @@ func InitGlobalFlags(cmd *cobra.Command, vp *viper.Viper) {
 	flags.MarkHidden(option.EnableNonDefaultDenyPolicies)
 	option.BindEnv(vp, option.EnableNonDefaultDenyPolicies)
 
+	flags.Bool(option.WireguardTrackAllIPsFallback, defaults.WireguardTrackAllIPsFallback, "Force WireGuard to track all IPs")
+	flags.MarkHidden(option.WireguardTrackAllIPsFallback)
+	option.BindEnv(vp, option.WireguardTrackAllIPsFallback)
+
 	flags.Bool(option.LBSourceRangeAllTypes, false, "Propagate loadbalancerSourceRanges to all corresponding service types")
 	option.BindEnv(vp, option.LBSourceRangeAllTypes)
 
@@ -1280,6 +1273,15 @@ func initEnv(vp *viper.Viper) {
 		log.WithError(err).Fatal("Unable to parse Label prefix configuration")
 	}
 
+	// Legacy / compatibility setting. This one has been remapped into the
+	// option.Config.LoadBalancerOnly flag.
+	if option.Config.DatapathMode == datapathOption.DatapathModeLBOnly {
+		option.Config.DatapathMode = datapathOption.DatapathModeVeth
+		option.Config.LoadBalancerOnly = true
+		log.Warnf("Value --%s=%s has been deprecated, Future releases might require to pick individual KPR flags instead",
+			option.DatapathMode, datapathOption.DatapathModeLBOnly)
+	}
+
 	switch option.Config.DatapathMode {
 	case datapathOption.DatapathModeVeth:
 	case datapathOption.DatapathModeNetkit, datapathOption.DatapathModeNetkitL2:
@@ -1291,7 +1293,11 @@ func initEnv(vp *viper.Viper) {
 		if err := probes.HaveNetkit(); err != nil {
 			log.Fatal("netkit devices need kernel 6.7.0 or newer and CONFIG_NETKIT")
 		}
-	case datapathOption.DatapathModeLBOnly:
+	default:
+		log.WithField(logfields.DatapathMode, option.Config.DatapathMode).Fatal("Invalid datapath mode")
+	}
+
+	if option.Config.LoadBalancerOnly {
 		log.Info("Running in LB-only mode")
 		if option.Config.NodePortAcceleration != option.NodePortAccelerationDisabled {
 			option.Config.EnablePMTUDiscovery = true
@@ -1308,8 +1314,6 @@ func initEnv(vp *viper.Viper) {
 		option.Config.EnableIPv6Masquerade = false
 		option.Config.InstallIptRules = false
 		option.Config.EnableL7Proxy = false
-	default:
-		log.WithField(logfields.DatapathMode, option.Config.DatapathMode).Fatal("Invalid datapath mode")
 	}
 
 	if option.Config.EnableL7Proxy && !option.Config.InstallIptRules {
@@ -1368,13 +1372,6 @@ func initEnv(vp *viper.Viper) {
 	if option.Config.EnableHostFirewall {
 		if option.Config.EnableIPSec {
 			log.Fatal("IPSec cannot be used with the host firewall.")
-		}
-	}
-
-	if err := probes.HaveSKBAdjustRoomL2RoomMACSupport(); err != nil {
-		if option.Config.ServiceNoBackendResponse != option.ServiceNoBackendResponseDrop {
-			log.Warn("The kernel does not support --service-no-backend-response=reject, falling back to --service-no-backend-response=drop")
-			option.Config.ServiceNoBackendResponse = option.ServiceNoBackendResponseDrop
 		}
 	}
 
@@ -1864,7 +1861,7 @@ func startDaemon(d *Daemon, restoredEndpoints *endpointRestoreState, cleaner *da
 	// Watches for node neighbors link updates.
 	d.nodeDiscovery.Manager.StartNodeNeighborLinkUpdater(params.NodeNeighbors)
 
-	if option.Config.DatapathMode != datapathOption.DatapathModeLBOnly {
+	if !option.Config.LoadBalancerOnly {
 		if !params.NodeNeighbors.NodeNeighDiscoveryEnabled() {
 			// Remove all non-GC'ed neighbor entries that might have previously set
 			// by a Cilium instance.

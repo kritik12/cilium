@@ -2254,6 +2254,12 @@ type ClientVpnEndpoint struct {
 	// A brief description of the endpoint.
 	Description *string
 
+	// Indicates whether the client VPN session is disconnected after the maximum
+	// sessionTimeoutHours is reached. If true , users are prompted to reconnect client
+	// VPN. If false , client VPN attempts to reconnect automatically. The default
+	// value is false .
+	DisconnectOnSessionTimeout *bool
+
 	// The DNS name to be used by clients when connecting to the Client VPN endpoint.
 	DnsName *string
 

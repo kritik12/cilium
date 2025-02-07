@@ -66,7 +66,7 @@ env:
   gcp_zone: us-east5-a
   k8s_version: 1.28
   # renovate: datasource=docker depName=google/cloud-sdk
-  gcloud_version: 505.0.0
+  gcloud_version: 507.0.0
 
 jobs:
   echo-inputs:
@@ -236,7 +236,7 @@ jobs:
           gcloud container clusters get-credentials ${{ env.clusterName }}-${{ matrix.index }} --zone ${{ env.gcp_zone }}
 
       - name: Install Cilium CLI
-        uses: cilium/cilium-cli@f313219850d324b516748ff7b00a6f9fa30d34ae # v0.16.23
+        uses: cilium/cilium-cli@a4936ec2afa58bf755162928456190344a179207 # v0.16.24
         with:
           skip-build: ${{ env.CILIUM_CLI_SKIP_BUILD }}
           image-repo: ${{ env.CILIUM_CLI_IMAGE_REPO }}
@@ -264,7 +264,7 @@ jobs:
 
       - name: Wait for Cilium to be ready
         run: |
-          cilium status --wait --wait-duration=10m
+          cilium status --wait --interactive=false --wait-duration=10m
           kubectl get pods -n kube-system
           kubectl -n kube-system exec daemonset/cilium -- cilium-dbg status
 
@@ -306,7 +306,7 @@ jobs:
 
       - name: Export results and sysdump to GS bucket
         if: ${{ always() && steps.run-perf.outcome != 'skipped' && steps.run-perf.outcome != 'cancelled' }}
-        uses: cilium/scale-tests-action/export-results@6fa546f61baa9b8d6db9ce885bed89876b82d2c7 # main
+        uses: cilium/scale-tests-action/export-results@99bcf57d537bcf05a2851a4a847d6a560e838824 # main
         with:
           test_name: ${{ env.test_name }}-${{ matrix.name }}
           results_bucket: ${{ env.GCP_PERF_RESULTS_BUCKET }}
