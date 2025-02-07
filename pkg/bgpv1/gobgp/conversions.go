@@ -502,6 +502,10 @@ func toGoBGPPeerConf(n *types.Neighbor, oldPeer *gobgp.Peer) *gobgp.PeerConf {
 
 	conf.AuthPassword = n.AuthPassword
 	conf.PeerAsn = n.ASN
+	
+	if n.Capabilities != nil && len(n.Capabilities) > 0 {
+		conf.Capabilities = n.Capabilities
+	}
 
 	return conf
 }

@@ -274,6 +274,20 @@ func TestToGoBGPPeer(t *testing.T) {
 				},
 			},
 		},
+		{
+			name: "Capabilities",
+			neighbor: &types.Neighbor{
+				Address: netip.MustParseAddr("10.0.0.1"),
+				Capabilities: []string{"MP_EXTENDED", "ROUTE_REFRESH"},
+			},
+			expected: &gobgp.Peer{
+				Conf: &gobgp.PeerConf{
+					NeighborAddress: "10.0.0.1",
+					Capabilities: []string{"MP_EXTENDED", "ROUTE_REFRESH"},
+				},
+				AfiSafis: defaultSafiAfi,
+			},
+		},
 	}
 
 	for _, tt := range tests {

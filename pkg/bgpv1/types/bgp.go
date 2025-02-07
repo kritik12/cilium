@@ -69,6 +69,7 @@ type Neighbor struct {
 	Transport       *NeighborTransport
 	GracefulRestart *NeighborGracefulRestart
 	AfiSafis        []*Family
+	Capabilities 	[]string 
 }
 
 type NeighborTransport struct {
