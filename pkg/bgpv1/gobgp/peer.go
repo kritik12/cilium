@@ -135,6 +135,10 @@ func (g *GoBGPServer) getPeerConfigV1(ctx context.Context, n types.NeighborReque
 	// set peer password
 	peer.Conf.AuthPassword = n.Password
 
+	if len(n.Neighbor.Capabilities) > 0 {
+		peer.Conf.Capabilities = n.Neighbor.Capabilities
+	}
+
 	// set peer transport, set local address to wildcard
 	g.setPeerTransport(peer, existingPeer, netip.Addr{}, peerAddr, peerPort)
 

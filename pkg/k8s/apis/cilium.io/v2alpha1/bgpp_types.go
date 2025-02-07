@@ -290,6 +290,10 @@ type CiliumBGPNeighbor struct {
 	//
 	// +kubebuilder:validation:Optional
 	AdvertisedPathAttributes []CiliumBGPPathAttributes `json:"advertisedPathAttributes,omitempty"`
+	// Capabilities is the list of BGP capabilities that are negotiated or configured for this neighbor.
+	//
+	// +kubebuilder:validation:Optional
+	Capabilities []string `json:"capabilities,omitempty"`
 }
 
 // CiliumBGPVirtualRouter defines a discrete BGP virtual router configuration.

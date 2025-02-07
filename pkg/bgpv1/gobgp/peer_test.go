@@ -110,6 +110,7 @@ type neighborConf struct {
 	timers    *timersConfig
 	restart   *restartConfig
 	transport *transportConfig
+	capabilities []string
 }
 
 func (n neighborConf) DeepCopy() neighborConf {
@@ -177,6 +178,9 @@ func neighborFromTestConf(c neighborConf) *v2alpha1.CiliumBGPNeighbor {
 		n.GracefulRestart.Enabled = c.restart.enabled
 		n.GracefulRestart.RestartTimeSeconds = c.restart.time
 	}
+	if len(c.capabilities) > 0 {
+		n.Capabilities = c.capabilities
+	}
 
 	return n
 }
@@ -233,6 +237,7 @@ func gobgpPeerFromTestConf(c neighborConf) *gobgp.Peer {
 		Conf: &gobgp.PeerConf{
 			NeighborAddress: c.address,
 			PeerAsn:         uint32(c.asn),
+			Capabilities: c.capabilities,
 		},
 		Transport: &gobgp.Transport{
 			RemotePort: uint32(*c.port),
@@ -296,6 +301,8 @@ func gobgpPeerFromTestConf(c neighborConf) *gobgp.Peer {
 }
 
 func TestGetPeerConfigV1(t *testing.T) {
+	capabilitiesConf := defaultConf.DeepCopy()
+	capabilitiesConf.capabilities = []string{"MP_EXTENDED", "ROUTE_REFRESH"}
 	table := []struct {
 		name     string
 		neighbor *v2alpha1.CiliumBGPNeighbor
@@ -348,6 +355,12 @@ func TestGetPeerConfigV1(t *testing.T) {
 			name:     "test neighbor graceful restart timers config",
 			neighbor: neighborFromTestConf(restartConf()),
 			expected: gobgpPeerFromTestConf(restartConf()),
+			expect:   true,
+		},
+		{
+			name:     "test neighbor with capabilities",
+			neighbor: neighborFromTestConf(capabilitiesConf),
+			expected: gobgpPeerFromTestConf(capabilitiesConf),
 			expect:   true,
 		},
 	}
