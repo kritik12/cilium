@@ -54,7 +54,7 @@ func printSummary(peers []*models.BgpPeer) {
 		return peers[i].LocalAsn < peers[j].LocalAsn || peers[i].PeerAddress < peers[j].PeerAddress
 	})
 
-	fmt.Fprintln(w, "Local AS\tPeer AS\tPeer Address\tcapabilities\tSession\tUptime\tFamily\tReceived\tAdvertised")
+	fmt.Fprintln(w, "Local AS\tPeer AS\tPeer Address\tCapabilities\tSession\tUptime\tFamily\tReceived\tAdvertised")
 	for _, peer := range peers {
 		fmt.Fprintf(w, "%d\t", peer.LocalAsn)
 		fmt.Fprintf(w, "%d\t", peer.PeerAsn)
